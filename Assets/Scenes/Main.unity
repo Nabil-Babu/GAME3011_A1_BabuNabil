@@ -421,6 +421,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tilePrefab: {fileID: 898557551995112509, guid: a8a1f7f991ee8d04385afe23efcee4af, type: 3}
-  maxColor: {r: 0, g: 0.990566, b: 0.045156997, a: 1}
+  stats:
+    fullColor: {r: 0, g: 1, b: 0, a: 1}
+    halfColor: {r: 0, g: 0.5, b: 0, a: 1}
+    quarterColor: {r: 0, g: 0.25, b: 0, a: 1}
+    empty: {r: 0, g: 0, b: 0, a: 1}
   maxResourceValue: 100
   maxGridSize: 32

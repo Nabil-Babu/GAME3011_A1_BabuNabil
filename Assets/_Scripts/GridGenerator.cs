@@ -1,19 +1,32 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using UnityEngine;
+
+
+[System.Serializable]
+public class GridStats
+{
+    public Color fullColor;
+    public Color halfColor;
+    public Color quarterColor;
+    public Color empty;
+}
 
 public class GridGenerator : MonoBehaviour
 {
     [Header("Grid Properties")]
     [SerializeField] private GameObject tilePrefab;
-    [SerializeField] private Color maxColor;
-    [SerializeField] private int maxResourceValue;
+
+    public GridStats stats;
+    public int maxResourceValue;
     [SerializeField] private int maxGridSize = 64;
     
     private static GridGenerator _instance;
     private GameObject[,] _grid;
+    private List<GameObject> _gridList;
     
-    private static GridGenerator Instance
+    public static GridGenerator Instance
     {
         get
         {
@@ -28,6 +41,8 @@ public class GridGenerator : MonoBehaviour
 
     void Start()
     {
+        _grid = new GameObject[maxGridSize,maxGridSize];
+        _gridList = new List<GameObject>();
         GridGenerator[] others = FindObjectsOfType<GridGenerator>();
         foreach (var gridGenerator in others)
         {
@@ -37,11 +52,12 @@ public class GridGenerator : MonoBehaviour
             }
         }
         BuildGrid();
+        BuildTileNeighbours();
+        AddRandomResources();
     }
 
     void BuildGrid()
     {
-        _grid = new GameObject[maxGridSize,maxGridSize];
         for (int i = 0; i < maxGridSize; i++)
         {
             for (int j = 0; j < maxGridSize; j++)
@@ -52,16 +68,43 @@ public class GridGenerator : MonoBehaviour
                 generatedTile.transform.position = tilePosition;
                 if (generatedTile.TryGetComponent<TileScripts>(out var tile))
                 {
-                    tile.InitTile(i, j, maxResourceValue, maxColor);
+                    tile.SetIndex(i, j);
+                    tile.InitResource(TileLevel.Empty);
                 }
+
                 _grid[i, j] = generatedTile;
                 generatedTile.transform.SetParent(transform);
+                _gridList.Add(generatedTile);
+                //gameObject.SetActive(false);
             }
         }
     }
 
-    public GameObject[,] GetGrid()
+    public GameObject GetTile(int row, int col)
     {
-        return _grid;
+        if (row >= 0 && col >= 0 && row < maxGridSize && col < maxGridSize)
+        {
+            return _grid[row, col];
+        }
+        return null;
+    }
+
+    public void BuildTileNeighbours()
+    {
+        foreach (var tile in _gridList)
+        {
+            if (tile.TryGetComponent<TileScripts>(out var tileScript))
+            {
+                tileScript.BuildNeighbourDictionary();
+            }
+        }
+    }
+
+    public void AddRandomResources()
+    {
+        for (int i = 0; i < 1; i++)
+        {
+            _gridList[Random.Range(0, _gridList.Count)].GetComponent<TileScripts>().InitResource(TileLevel.Full);
+        }
     }
 }
