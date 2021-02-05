@@ -74,8 +74,20 @@ public class TileScripts : MonoBehaviour, IPointerClickHandler
     {
         Debug.Log("Current Resource Level: "+resourceValue);
         Debug.Log("Current tile Level: "+currentLevel);
-        RevealTile();
-        RevealNeighbours();
+        if (GameStateController.Instance.scanningMode && GameStateController.Instance.scanAttempts > 0)
+        {
+            RevealTile();
+            RevealNeighbours();
+            GameStateController.Instance.ReduceScanAttempt();
+        }
+        else if(GameStateController.Instance.extractionMode && GameStateController.Instance.extractionAttempts > 0)
+        {
+            RevealTile();
+            MakeEmptyTile();
+            ReduceAllNeighbours();
+            GameStateController.Instance.AddResourcesToTotal(resourceValue);
+            GameStateController.Instance.ReduceExtractionAttempt();
+        }
     }
 
     public void BuildNeighbourDictionary()
@@ -169,7 +181,7 @@ public class TileScripts : MonoBehaviour, IPointerClickHandler
         colIndex = colInd;
     }
 
-    public void SetColor(TileLevel level)
+    public void SetLevelColor(TileLevel level)
     {
         switch (level)
         {
@@ -200,32 +212,54 @@ public class TileScripts : MonoBehaviour, IPointerClickHandler
         isRevealed = true;
     }
 
+    public void UpdateColor()
+    {
+        if (isRevealed)
+        {
+            _image.color = tileColor;
+        }
+    }
+
+    public void ReduceTileLevel()
+    {
+        currentLevel++;
+        SetLevelColor(currentLevel);
+        UpdateColor();
+    }
+
+    public void MakeEmptyTile()
+    {
+        currentLevel = TileLevel.Empty;
+        SetLevelColor(currentLevel);
+        UpdateColor();
+    }
+
     public void InitResource(TileLevel level)
     {
         if (hasResource) return; // breaks out of function if true and set a resource 
         switch (level)
         {
             case TileLevel.Full:
-                SetColor(level);
+                SetLevelColor(level);
                 resourceValue = GridGenerator.Instance.maxResourceValue;
                 currentLevel = TileLevel.Full;
                 hasResource = true;
                 InitAllNeighbourResources();
                 break;
             case TileLevel.Half:
-                SetColor(level);
+                SetLevelColor(level);
                 resourceValue = GridGenerator.Instance.maxResourceValue/2;
                 currentLevel = TileLevel.Half;
                 hasResource = true;
                 break;
             case TileLevel.Quarter:
-                SetColor(level);
+                SetLevelColor(level);
                 resourceValue = GridGenerator.Instance.maxResourceValue/4;
                 currentLevel = TileLevel.Quarter;
                 hasResource = true;
                 break;
             case TileLevel.Empty:
-                SetColor(level);
+                SetLevelColor(level);
                 resourceValue = 0;
                 currentLevel = TileLevel.Empty;
                 hasResource = false;
@@ -265,5 +299,33 @@ public class TileScripts : MonoBehaviour, IPointerClickHandler
             if (neighbourTile == null) continue;
             neighbourTile.GetComponent<TileScripts>().RevealTile();
         }
+    }
+
+    public void ReduceAllNeighbours()
+    {
+        foreach (var neighbourTile in neighbourArray)
+        {
+            if (neighbourTile == null) continue;
+            if (neighbourTile.GetComponent<TileScripts>().currentLevel != TileLevel.Empty)
+            {
+                neighbourTile.GetComponent<TileScripts>().ReduceTileLevel();
+            }
+        }
+
+        foreach (var farNeighbourTile in farNeighbourArray)
+        {
+            if (farNeighbourTile == null) continue;
+            if (farNeighbourTile.GetComponent<TileScripts>().currentLevel != TileLevel.Empty)
+            {
+                farNeighbourTile.GetComponent<TileScripts>().ReduceTileLevel();
+            }
+        }
+    }
+
+    public void ResetTile()
+    {
+        hasResource = false;
+        resourceValue = 0;
+        currentLevel = TileLevel.Empty;
     }
 }

@@ -23,14 +23,23 @@ public class GameStateController : MonoBehaviour
     private bool _gameEnabled;
     
     public bool scanningMode;
-    public bool extractionMode = true;
+    public bool extractionMode;
     public int scanAttempts = 6;
     public int extractionAttempts = 3;
     public GameObject miniGameWindow;
     public TMP_Text messageTextUI;
     public TMP_Text resourceTextUI;
+    public Button scanButton;
+    public Button extractButton; 
+    public Button resetButton; 
 
     private string _messageOutput;
+
+    public void Start()
+    {
+        EnableExtractionMode();
+        resetButton.interactable = false;
+    }
 
     public void ToggleMiniGame()
     {
@@ -42,6 +51,8 @@ public class GameStateController : MonoBehaviour
     {
         scanningMode = true;
         extractionMode = false;
+        scanButton.interactable = false;
+        extractButton.interactable = true;
         _messageOutput = "Enabled Scanning Mode \n" +
                         "Attempts Left: "+scanAttempts.ToString();
         UpdateMessageUI();
@@ -51,6 +62,8 @@ public class GameStateController : MonoBehaviour
     {
         extractionMode = true;
         scanningMode = false;
+        scanButton.interactable = true;
+        extractButton.interactable = false;
         _messageOutput = "Enabled Extraction Mode \n" +
                          "Attempts Left: "+extractionAttempts.ToString();
         UpdateMessageUI();
@@ -59,18 +72,40 @@ public class GameStateController : MonoBehaviour
     public void ReduceScanAttempt()
     {
         scanAttempts--;
-        if (scanAttempts <= 0) scanAttempts = 0;
-        _messageOutput = "Scanning Area... \n" +
-                         "Attempts Left: "+scanAttempts.ToString();
+        if (scanAttempts <= 0)
+        {
+            scanAttempts = 0;
+            _messageOutput = "Scanning Area... \n" +
+                             "No Attempts Left \n";
+        }
+        else
+        {
+            _messageOutput = "Scanning Area... \n" +
+                             "Attempts Left: "+scanAttempts.ToString();
+        }
         UpdateMessageUI();
     }
 
     public void ReduceExtractionAttempt()
     {
         extractionAttempts--;
-        if (extractionAttempts <= 0) extractionAttempts = 0;
-        _messageOutput = "Extracting Node... \n" +
-                         "Attempts Left: "+extractionAttempts.ToString();
+        if (extractionAttempts <= 0)
+        {
+            extractionAttempts = 0;
+            _messageOutput = "Extracting Node... \n" + 
+                             "Adding Resources... \n" +
+                             "No More Attempts Left \n" +
+                             "You have Extracted "+totalGatheredResource.ToString()+" minerals";
+            scanButton.interactable = false;
+            extractButton.interactable = false;
+            resetButton.interactable = true;
+        }
+        else
+        {
+            _messageOutput = "Extracting Node... \n" + 
+                             "Adding Resources... \n" +
+                             "Attempts Left: "+extractionAttempts.ToString();
+        }
         UpdateMessageUI();
     }
 
@@ -78,11 +113,20 @@ public class GameStateController : MonoBehaviour
     {
         totalGatheredResource += amount;
         resourceTextUI.text = totalGatheredResource.ToString();
-        _messageOutput = "Adding Resources... \n";
-        UpdateMessageUI();
     }
     void UpdateMessageUI()
     {
         messageTextUI.text = _messageOutput;
+    }
+
+    public void ResetTheGame()
+    {
+        totalGatheredResource = 0;
+        scanAttempts = 6;
+        extractionAttempts = 3;
+        resourceTextUI.text = totalGatheredResource.ToString();
+        GridGenerator.Instance.ResetGrid();
+        resetButton.interactable = false;
+        EnableExtractionMode();
     }
 }

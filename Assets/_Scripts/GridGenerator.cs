@@ -75,7 +75,7 @@ public class GridGenerator : MonoBehaviour
                 _grid[i, j] = generatedTile;
                 generatedTile.transform.SetParent(transform);
                 _gridList.Add(generatedTile);
-                //gameObject.SetActive(false);
+                gameObject.SetActive(false);
             }
         }
     }
@@ -106,5 +106,15 @@ public class GridGenerator : MonoBehaviour
         {
             _gridList[Random.Range(0, _gridList.Count)].GetComponent<TileScripts>().InitResource(TileLevel.Full);
         }
+    }
+
+    public void ResetGrid()
+    {
+        foreach (var tile in _gridList)
+        {
+            tile.GetComponent<TileScripts>().ResetTile();
+            tile.GetComponent<TileScripts>().InitResource(TileLevel.Empty);
+        }
+        AddRandomResources();
     }
 }
