@@ -98,4 +98,4 @@ MonoBehaviour:
   neighbourArray: []
   farNeighbourArray: []
   currentLevel: 0
-  hiddenColor: {r: 1, g: 1, b: 1, a: 1}
+  hiddenColor: {r: 0.36862746, g: 0.5921569, b: 0.41568628, a: 1}
